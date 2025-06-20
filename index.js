@@ -25,7 +25,7 @@ import Utils from './lib/Utils.js';
 
 
         const idxList = ['hsi', 'hscei', 'hstech']
-        const github = new GitHub({ owner: 'itdog-zone', repo: 'hkex-data', token: process.env.GITHUB_TOKEN });
+        const github = new GitHub({ owner: process.env.GITHUB_OWNER, repo: process.env.GITHUB_REPO, token: process.env.GITHUB_TOKEN });
         for (const _idx of idxList) {
             const filename = `${date.toFormat('yyyyMMdd')}_${_idx}.pdf`
 
