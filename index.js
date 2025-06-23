@@ -27,22 +27,32 @@ import Utils from './lib/Utils.js';
         const idxList = ['hsi', 'hscei', 'hstech']
         const github = new GitHub({ owner: process.env.GITHUB_OWNER, repo: process.env.GITHUB_REPO, token: process.env.GITHUB_TOKEN });
         for (const _idx of idxList) {
-            const filename = `${date.toFormat('yyyyMMdd')}_${_idx}.pdf`
+            const filename = `${date.toFormat('yyyyMMdd')}_${_idx}`
 
-            const fileToProcess = `./download/${filename}`
+            const pdfToProcess = `./download/${filename}.pdf`
+            const jsonToProcess = `./download/${filename}.json`
 
-            if (!fs.existsSync(fileToProcess)) {
+            if (!fs.existsSync(pdfToProcess)) {
                 console.log(`process to download file at: ${date.toFormat('yyyy-MM-dd')}`)
                 // process to download
                 const hsi = new Hsi({ username: process.env.HSI_USERNAME, password: process.env.HSI_PASSWORD, date });
                 await hsi.downloadConstituentsPdf();
             }
 
-            if (fs.existsSync(fileToProcess)) {
-                console.log(`process to upload file: ${fileToProcess}`)
-                await github.uploadConstituentsPdf({ path: `hkex/constituents/pdf/${filename}`, filePath: fileToProcess });
+            if (fs.existsSync(pdfToProcess)) {
+
+                const indexJsonData = await Hsi.getDataFromPdf({filePath: pdfToProcess, index: _idx, date: date.toFormat('yyyyMMdd')})
+                fs.writeFileSync(jsonToProcess, JSON.stringify(indexJsonData, null, 2));
+
+                console.log(`process to upload file: ${pdfToProcess}`)
+                await github.uploadConstituentsPdf({ path: `hkex/constituents/pdf/${filename}.pdf`, filePath: pdfToProcess });
                 await Utils.delay(1000);
-                fs.rmSync(fileToProcess);
+                await github.uploadConstituentsPdf({ path: `hkex/constituents/json/${filename}.json`, filePath: jsonToProcess });
+                await Utils.delay(1000);
+                if(Args.getValue('keep') !== 'true'){
+                    fs.rmSync(pdfToProcess);
+                    fs.rmSync(jsonToProcess);
+                }
             }
         }
 
