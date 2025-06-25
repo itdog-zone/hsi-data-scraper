@@ -53,16 +53,19 @@ import HkGov from './lib/HkGov.js';
                 // process to download
                 const hsi = new Hsi({ username: process.env.HSI_USERNAME, password: process.env.HSI_PASSWORD, date });
                 await hsi.downloadConstituentsPdf();
+                console.log(`process to download file at: ${date.toFormat('yyyy-MM-dd')}...done`)
             }
 
             if (fs.existsSync(pdfToProcess)) {
 
+                console.log(`process to extract data: ${pdfToProcess}`)
                 const indexJsonData = await Hsi.getDataFromPdf({ filePath: pdfToProcess, index: _idx, date: date.toFormat('yyyyMMdd') })
                 fs.writeFileSync(jsonToProcess, JSON.stringify(indexJsonData, null, 2));
 
                 console.log(`process to upload file: ${pdfToProcess}`)
                 await github.uploadConstituentsPdf({ path: `hkex/constituents/pdf/${filename}.pdf`, filePath: pdfToProcess });
                 await Utils.delay(1000);
+                console.log(`process to upload file: ${jsonToProcess}`)
                 await github.uploadConstituentsPdf({ path: `hkex/constituents/json/${filename}.json`, filePath: jsonToProcess });
                 await Utils.delay(1000);
                 if (Args.getValue('keep') !== 'true') {
