@@ -21,7 +21,7 @@ import HkGov from './lib/HkGov.js';
                 date = inputDate;
             }
         }
-        console.log(`curr Date: ${date.toFormat('yyyy-MM-dd')}`);
+        console.log(`process Date: ${date.toFormat('yyyy-MM-dd')} (${date.toFormat('ccc')})`);
 
         // get holidays
         const holidays = await HkGov.getHolidayList();
@@ -64,10 +64,10 @@ import HkGov from './lib/HkGov.js';
 
                 console.log(`process to upload file: ${pdfToProcess}`)
                 await github.uploadConstituentsPdf({ path: `hkex/constituents/pdf/${filename}.pdf`, filePath: pdfToProcess });
-                await Utils.delay(1000);
+                await Utils.delay(200);
                 console.log(`process to upload file: ${jsonToProcess}`)
                 await github.uploadConstituentsPdf({ path: `hkex/constituents/json/${filename}.json`, filePath: jsonToProcess });
-                await Utils.delay(1000);
+                await Utils.delay(200);
                 if (Args.getValue('keep') !== 'true') {
                     fs.rmSync(pdfToProcess);
                     fs.rmSync(jsonToProcess);
@@ -75,7 +75,7 @@ import HkGov from './lib/HkGov.js';
             }
         }
 
-        await Utils.sendMessage({ msg: `process done at: ${date.toFormat('yyyy-MM-dd')}` });
+        await Utils.sendMessage({ msg: `process done at: ${date.toFormat('yyyy-MM-dd')} (${date.toFormat('ccc')})` });
         process.exit(0)
     }
 )();
