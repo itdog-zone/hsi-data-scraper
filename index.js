@@ -10,7 +10,6 @@ import HkGov from './lib/HkGov.js';
 
 (
     async () => {
-
         // setup date for processing
         let date = DateTime.now().startOf('day');
         console.log(`init Date: ${date.toFormat('yyyy-MM-dd')}`);
@@ -27,12 +26,16 @@ import HkGov from './lib/HkGov.js';
         // get holidays
         const holidays = await HkGov.getHolidayList();
         if (holidays.find(x => x.date === date.toFormat('yyyyMMdd')) !== undefined) {
-            console.log(`skip on holiday: ${date.toFormat('yyyy-MM-dd')}`)
+            const msg = `skip on holiday: ${date.toFormat('yyyy-MM-dd')}`
+            console.log(msg)
+            await Utils.sendMessage({ msg: msg });
             process.exit(0)
         }
         // exit if sat and sun
         if (date.weekday === 6 || date.weekday === 7) {
-            console.log(`skip on sat and sun: ${date.toFormat('yyyy-MM-dd')} (${date.toFormat('ccc')})`)
+            const msg = `skip on sat and sun: ${date.toFormat('yyyy-MM-dd')} (${date.toFormat('ccc')})`
+            console.log(msg)
+            await Utils.sendMessage({ msg: msg });
             process.exit(0)
         }
 
@@ -68,6 +71,8 @@ import HkGov from './lib/HkGov.js';
                 }
             }
         }
+
+        await Utils.sendMessage({ msg: `process done at: ${date.toFormat('yyyy-MM-dd')}` });
         process.exit(0)
     }
 )();
