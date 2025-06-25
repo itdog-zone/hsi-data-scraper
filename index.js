@@ -3,7 +3,7 @@ import 'dotenv/config';
 import { DateTime } from 'luxon';
 import Args from './lib/Args.js';
 import Hsi from './lib/Hsi.js';
-import GitHub from './lib/github.js';
+import GitHub from './lib/Github.js';
 import Utils from './lib/Utils.js';
 import HkGov from './lib/HkGov.js';
 
