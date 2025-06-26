@@ -6,12 +6,13 @@ import Hsi from './lib/Hsi.js';
 import GitHub from './lib/Github.js';
 import Utils from './lib/Utils.js';
 import HkGov from './lib/HkGov.js';
-import { Util } from 'pdfjs-dist';
 
 
 (
     async () => {
         console.log('Running with Node.js version:', process.version);
+
+        Utils.ensureDirExistsSync('./download');
 
         // Date list for batch processing
         const dateList = []
