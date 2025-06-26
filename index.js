@@ -6,56 +6,57 @@ import Hsi from './lib/Hsi.js';
 import GitHub from './lib/Github.js';
 import Utils from './lib/Utils.js';
 import HkGov from './lib/HkGov.js';
+import { Util } from 'pdfjs-dist';
 
 
 (
     async () => {
         console.log('Running with Node.js version:', process.version);
 
-        // setup date for processing
-        // data generate on next day 0100 -> scrape the previous day data
-        let date = DateTime.now().plus({ days: -1 }).startOf('day');
-        console.log(`init Date: ${date.toFormat('yyyy-MM-dd')}`);
-
-        // args input, override the default date
-        const dateInput = Args.getValue('date');
-        if (dateInput) {
-            const inputDate = DateTime.fromISO(dateInput);
-            if (inputDate.isValid) {
-                date = inputDate;
-            }
-        }
-        console.log(`process Date: ${date.toFormat('yyyy-MM-dd')} (${date.toFormat('ccc')})`);
-
         // Date list for batch processing
         const dateList = []
 
-        // get holidays
-        const holidays = await HkGov.getHolidayList();
-        if (holidays.find(x => x.date === date.toFormat('yyyyMMdd')) !== undefined) {
-            const msg = `skip on holiday: ${date.toFormat('yyyy-MM-dd')}`
-            console.log(msg)
-            await Utils.sendMessage({ msg: msg });
+        // setup date for processing
+        // data generate on next day 0100 -> scrape the previous day data
+        // report is ready at the same day, but the time is not confirm
+
+        // Handling Date Range process
+        const argsFm = Args.getValue('from');
+        const argsTo = Args.getValue('to');
+        const dateFm = DateTime.fromISO(argsFm).isValid ? DateTime.fromISO(argsFm).startOf('day') : undefined;
+        const dateTo = DateTime.fromISO(argsTo).isValid ? DateTime.fromISO(argsTo).startOf('day') : undefined;
+        if (dateFm !== undefined && dateTo !== undefined && dateFm < dateTo) {
+            let currentDate = dateFm;
+            while (currentDate <= dateTo) {
+                if (await Utils.isTradingDate(currentDate)) {
+                    dateList.push(currentDate)
+                }
+                currentDate = currentDate.plus({ days: 1 });
+            }
         }
-        else if (date.weekday === 6 || date.weekday === 7) {
-            const msg = `skip on sat and sun: ${date.toFormat('yyyy-MM-dd')} (${date.toFormat('ccc')})`
-            console.log(msg)
-            await Utils.sendMessage({ msg: msg });
-        } 
-        // not holiday and not sat and sun, put to date list
-        else {
-            dateList.push(date)
+
+        if (dateList.length === 0) {
+            // args input, override the default date
+            const dateInput = Args.getValue('date');
+            const date = DateTime.fromISO(dateInput).isValid ? DateTime.fromISO(dateInput).startOf('day') : DateTime.now().startOf('day');
+            if (await Utils.isTradingDate(date)) {
+                dateList.push(date)
+            }
+            console.log(`process Date: ${date.toFormat('yyyy-MM-dd')} (${date.toFormat('ccc')})`);
+        }
+
+        // Show date list        
+        for (const dd of dateList) {
+            console.log(`${dd.toFormat('yyyy-MM-dd')} (${dd.toFormat('ccc')})`)
         }
 
         // Check if date list is empty
         if (dateList.length === 0) {
-            const msg = `No data process`
+            const msg = `No date process`
             console.log(msg)
             await Utils.sendMessage({ msg: msg });
             process.exit(0)
         }
-
-
 
         // create file list for processing
         const fileList = []
@@ -64,7 +65,7 @@ import HkGov from './lib/HkGov.js';
             for (const _idx of idxList) {
                 const filename = `${dd.toFormat('yyyyMMdd')}_${_idx}`
                 fileList.push({
-                    source: 'hsi', 
+                    source: 'hsi',
                     date: dd,
                     index: _idx,
                     fromFile: `https://www.hsi.com.hk/static/uploads/contents/en/indexes/report/${_idx}/constituents_${dd.toFormat('dLLLyy')}.pdf`,
@@ -76,10 +77,9 @@ import HkGov from './lib/HkGov.js';
             }
         }
         // put another files if needed
-
-
-        console.table(dateList)
         console.table(fileList)
+
+
 
         // Check if file exists
         let isFileNotExists = false
@@ -92,11 +92,11 @@ import HkGov from './lib/HkGov.js';
 
         // if some file not exists, process to download
         if (isFileNotExists) {
-            console.log(`process to download file at: ${date.toFormat('yyyy-MM-dd')}`)
+            console.log(`process to download file at: ${fileList.map(x => x.date.toFormat('yyyy-MM-dd')).join(', ')}...`)
             // process to download
-            const hsi = new Hsi({ username: process.env.HSI_USERNAME, password: process.env.HSI_PASSWORD, date });
+            const hsi = new Hsi({ username: process.env.HSI_USERNAME, password: process.env.HSI_PASSWORD });
             await hsi.downloadConstituentsPdf({ fileList: fileList });
-            console.log(`process to download file at: ${date.toFormat('yyyy-MM-dd')}...done`)
+            console.log(`process to download file at: ${fileList.map(x => x.date.toFormat('yyyy-MM-dd')).join(', ')}...done`)
         }
 
 
@@ -110,7 +110,7 @@ import HkGov from './lib/HkGov.js';
             // file exists, extract data to json and upload to github
             if (fs.existsSync(pdfToProcess)) {
                 console.log(`process to extract data: ${pdfToProcess}`)
-                const indexJsonData = await Hsi.getDataFromPdf({ filePath: pdfToProcess, index: fileInfo.index, date: date.toFormat('yyyyMMdd') })
+                const indexJsonData = await Hsi.getDataFromPdf({ filePath: pdfToProcess, index: fileInfo.index, date: fileInfo.date.toFormat('yyyyMMdd') })
                 fs.writeFileSync(jsonToProcess, JSON.stringify(indexJsonData, null, 2));
 
                 console.log(`process to upload file: ${pdfToProcess}`)
@@ -126,7 +126,7 @@ import HkGov from './lib/HkGov.js';
             }
         }
 
-        await Utils.sendMessage({ msg: `process done at: ${date.toFormat('yyyy-MM-dd')} (${date.toFormat('ccc')})` });
+        await Utils.sendMessage({ msg: `process done at: ${fileList.map(x => `${x.date.toFormat('yyyy-MM-dd')} ${x.date.toFormat('ccc')}`).join(', ')}` });
         process.exit(0)
     }
 )();
