@@ -126,7 +126,11 @@ import { Util } from 'pdfjs-dist';
             }
         }
 
-        await Utils.sendMessage({ msg: `process done at: ${fileList.map(x => `${x.date.toFormat('yyyy-MM-dd')} ${x.date.toFormat('ccc')}`).join(', ')}` });
+        {
+            const msg = `process done at: ${fileList.map(x => `${x.date.toFormat('yyyy-MM-dd')} ${x.date.toFormat('ccc')}`).join(', ')}`
+            console.log(msg)
+            await Utils.sendMessage({ msg: msg });
+        }
         process.exit(0)
     }
 )();
