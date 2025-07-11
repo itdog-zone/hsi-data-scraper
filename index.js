@@ -28,8 +28,8 @@ import HkexProcess from './tasks/HkexProcess.js';
         // -------------------------------------------
         // tasks for hsi.com.hk 
         // -------------------------------------------
-        // const hsiProcess = new HsiProcess({ dateList: dateList });
-        // const hsiFileList = await hsiProcess.extractDataFromHsi();
+        const hsiProcess = new HsiProcess({ dateList: dateList });
+        const hsiFileList = await hsiProcess.extractDataFromHsi();
 
         // -------------------------------------------
         // tasks for hkex.com.hk 
