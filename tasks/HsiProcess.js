@@ -3,6 +3,7 @@ import ENum from "../lib/ENum.js"
 import GitHub from "../lib/Github.js"
 import Hsi from "../lib/Hsi.js"
 import Utils from "../lib/Utils.js"
+import Args from '../lib/Args.js';
 
 export default class HsiProcess {
     constructor(args) {
@@ -12,15 +13,16 @@ export default class HsiProcess {
 
     extractDataFromHsi = async () => {
         // create file list for processing
-        const idxList = ENum.HSI_MAIN_INDEX_LIST
+        const idxList = ENum.HSI_INDEX_CODE_LIST
         const fileList = []
         for (const dd of this.dateList) {
             for (const _idx of idxList) {
-                const filename = `${dd.toFormat('yyyyMMdd')}_${_idx}`
+                const filename = `${dd.toFormat('yyyyMMdd')}_${ENum.HSI_MAIN_INDEX_NAME[_idx]}`
                 fileList.push({
                     source: 'hsi',
                     date: dd,
-                    index: _idx,
+                    indexCode: _idx,
+                    index: ENum.HSI_MAIN_INDEX_NAME[_idx],
                     fromFile: `https://www.hsi.com.hk/static/uploads/contents/en/indexes/report/${_idx}/constituents_${dd.toFormat('dLLLyy')}.pdf`,
                     downloadFile: `./download/${filename}.pdf`,
                     jsonFile: `./download/${filename}.json`,
@@ -63,16 +65,21 @@ export default class HsiProcess {
                 const indexJsonData = await Hsi.getDataFromPdf({ filePath: pdfToProcess, index: fileInfo.index, date: fileInfo.date.toFormat('yyyyMMdd') })
                 fs.writeFileSync(jsonToProcess, JSON.stringify(indexJsonData, null, 2));
 
-                console.log(`process to upload file: ${pdfToProcess}`)
-                await github.uploadFile({ path: fileInfo.githubPdfPath, filePath: pdfToProcess });
-                await Utils.delay(200);
-                console.log(`process to upload file: ${jsonToProcess}`)
-                await github.uploadFile({ path: fileInfo.githubJsonPath, filePath: jsonToProcess });
-                await Utils.delay(200);
+                if (Args.getValue('skipGithub') !== 'true') {
+
+                    console.log(`process to upload file: ${pdfToProcess}`)
+                    await github.uploadFile({ path: fileInfo.githubPdfPath, filePath: pdfToProcess });
+                    await Utils.delay(200);
+                    console.log(`process to upload file: ${jsonToProcess}`)
+                    await github.uploadFile({ path: fileInfo.githubJsonPath, filePath: jsonToProcess });
+                    await Utils.delay(200);
+                }
+                
                 if (Args.getValue('keep') !== 'true') {
                     fs.rmSync(pdfToProcess);
                     fs.rmSync(jsonToProcess);
                 }
+                fileInfo.data = indexJsonData
                 fileInfo.processed = true
             }
         }

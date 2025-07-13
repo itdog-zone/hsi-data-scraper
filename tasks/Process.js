@@ -12,7 +12,10 @@ export default class Process {
     
     constructor(args) {
     }
+
     init = async () => {
+
+        // Create download folder
         Utils.ensureDirExistsSync('./download');
 
         // Date list for batch processing
@@ -46,8 +49,9 @@ export default class Process {
             }
             console.log(`process Date: ${date.toFormat('yyyy-MM-dd')} (${date.toFormat('ccc')})`);
         }
-
+        
         this.dateList = dateList
+        this.isInit = true
     }
 
     getDateList = () => {

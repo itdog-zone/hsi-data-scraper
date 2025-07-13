@@ -61,16 +61,20 @@ export default class HkexProcess {
                 const jsonData = await Hkex.getDataFromFile({ fileInfo: fileInfo })
                 fs.writeFileSync(jsonToProcess, JSON.stringify(jsonData, null, 2));
 
-                console.log(`process to upload file: ${fileToProcess}`)
-                await github.uploadFile({ path: fileInfo.githubFilePath, filePath: fileToProcess });
-                await Utils.delay(200);
-                console.log(`process to upload file: ${jsonToProcess}`)
-                await github.uploadFile({ path: fileInfo.githubJsonPath, filePath: jsonToProcess });
-                await Utils.delay(200);
+                if (Args.getValue('skipGithub') !== 'true') {
+                    console.log(`process to upload file: ${fileToProcess}`)
+                    await github.uploadFile({ path: fileInfo.githubFilePath, filePath: fileToProcess });
+                    await Utils.delay(200);
+                    console.log(`process to upload file: ${jsonToProcess}`)
+                    await github.uploadFile({ path: fileInfo.githubJsonPath, filePath: jsonToProcess });
+                    await Utils.delay(200);
+                }
+
                 if (Args.getValue('keep') !== 'true') {
                     fs.rmSync(fileToProcess);
                     fs.rmSync(jsonToProcess);
                 }
+                fileInfo.data = jsonData
                 fileInfo.processed = true
             }
         }
