@@ -35,20 +35,20 @@ import IndexConstituentsAnalysis from './tasks/IndexConstituentsAnalysis.js';
         // -------------------------------------------
         // tasks for hkex.com.hk 
         // -------------------------------------------
-        const hkexProcess = new HkexProcess({ dateList: dateList});
-        const hkexFileList = await hkexProcess.extractDataFromHkex();
+        // const hkexProcess = new HkexProcess({ dateList: dateList});
+        // const hkexFileList = await hkexProcess.extractDataFromHkex();
 
 
         // -------------------------------------------
         // Make simple analysis (WIP) 
         // -------------------------------------------
-        const indexConstituents = hsiFileList.reduce((acc, cur) => {
-            acc[cur.indexCode] = { constituents: cur.data }
-            return acc
-        }, {});
-        const indexQuotations = (hkexFileList || []).length > 0 ? hkexFileList[0].data.quotations : [];
-        const indexConstituentsAnalysis = new IndexConstituentsAnalysis({ indexConstituents: indexConstituents, indexQuotations: indexQuotations });
-        const indexConstituentsAnalysisResult = indexConstituentsAnalysis.analysisData();
+        // const indexConstituents = hsiFileList.reduce((acc, cur) => {
+        //     acc[cur.indexCode] = { constituents: cur.data }
+        //     return acc
+        // }, {});
+        // const indexQuotations = (hkexFileList || []).length > 0 ? hkexFileList[0].data.quotations : [];
+        // const indexConstituentsAnalysis = new IndexConstituentsAnalysis({ indexConstituents: indexConstituents, indexQuotations: indexQuotations });
+        // const indexConstituentsAnalysisResult = indexConstituentsAnalysis.analysisData();
 
         {
             const msg = `process done at: ${dateList.map(x => `${x.toFormat('yyyy-MM-dd')} ${x.toFormat('ccc')}`).join(', ')}`
