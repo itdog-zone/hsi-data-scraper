@@ -23,7 +23,7 @@ export default class HsiProcess {
                     date: dd,
                     indexCode: _idx,
                     index: ENum.HSI_MAIN_INDEX_NAME[_idx],
-                    fromFile: `https://www.hsi.com.hk/static/uploads/contents/en/indexes/report/${_idx}/constituents_${dd.toFormat('dLLLyy')}.pdf`,
+                    fromFile: `https://www.hsi.com.hk/static/uploads/contents/en/indexes/report/${ENum.HSI_MAIN_INDEX_NAME[_idx]}/constituents_${dd.toFormat('dLLLyy')}.pdf`,
                     downloadFile: `./download/${filename}.pdf`,
                     jsonFile: `./download/${filename}.json`,
                     githubPdfPath: `hkex/constituents/pdf/${filename}.pdf`,
